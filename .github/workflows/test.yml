@@ -3,7 +3,11 @@ name: Test
 on: [push, pull_request]
 jobs:
   test:
-    runs-on: ubuntu-latest
+    #run the test on ubuntu, mac, and windows to check platform-specific errors
+    strategy:
+      matrix:
+        os: [ubuntu-latest,macos-latest,windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - name: Install Go
       uses: actions/setup-go@v2
@@ -11,5 +15,27 @@ jobs:
         go-version:  1.15.x
     - name: Checkout code
       uses: actions/checkout@v2
+    #run basic go test command for each package
     - name: Test
-      run: go test ./...
+      run: go test -v ./...
+
+  #coverage is separate job to avoid three reports for each pull request
+  #chose codecov because of good community reviews (can be changed to Coveralls with change of action)
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version:  1.15.x
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Test
+        run: go test -covermode=count -coverprofile=count.out ./...
+      - name: Convert gcov output to lcov
+        uses: jandelgado/gcov2lcov-action@v1.0.6
+      - name: Upload to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          verbose: true
+      
