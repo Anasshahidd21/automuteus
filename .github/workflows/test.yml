@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v2
     #run basic go test command for each package
     - name: Test
-      run: go test -v ./...
+      run: go test ./...
 
   #coverage is separate job to avoid three reports for each pull request
   #chose codecov because of good community reviews (can be changed to Coveralls with change of action)
